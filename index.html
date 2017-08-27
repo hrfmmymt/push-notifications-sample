@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Push Notification Sample</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-  <script src="https://www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
+
+  <button id="push-button" disabled>Subscribe</button>
+
+  <form action="#">
+    <div>
+      <input id="input-title" type="text">
+      <label for="input-title">Post Title</label>
+    </div>
+
+    <button type="submit" id="add-post">Add Post</button>
+  </form>
+
+  <script src="//www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
   <script>
     // Initialize Firebase
     var config = {
@@ -21,21 +33,94 @@
     firebase.initializeApp(config);
 
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js');
+    const messaging = firebase.messaging(),
+      database  = firebase.database(),
+      pushBtn   = document.getElementById('push-button')
 
-      navigator.serviceWorker.ready
-        .then(function (registration) {
-          return registration.pushManager.subscribe({ userVisibleOnly: true });
+    let userToken    = null,
+        isSubscribed = false
+
+    window.addEventListener('load', () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            messaging.useServiceWorker(registration)
+            initializePush()
+          })
+          .catch(err => console.log('Service Worker Error', err))
+      } else {
+        pushBtn.textContent = 'Push not supported.'
+      }
+    })
+
+    function initializePush() {
+      userToken = localStorage.getItem('pushToken')
+      isSubscribed = userToken !== null
+      updateBtn()
+
+      pushBtn.addEventListener('click', () => {
+        pushBtn.disabled = true
+        if (isSubscribed) return unsubscribeUser()
+        return subscribeUser()
+      })
+    }
+
+    function updateBtn() {
+      if (Notification.permission === 'denied') {
+        pushBtn.textContent = 'Subscription blocked'
+        return
+      }
+      pushBtn.textContent = isSubscribed ? 'Unsubscribe' : 'Subscribe'
+      pushBtn.disabled = false
+    }
+
+    function subscribeUser() {
+      messaging.requestPermission()
+        .then(() => messaging.getToken())
+        .then(token => {
+          updateSubscriptionOnServer(token)
+          isSubscribed = true
+          userToken = token
+          localStorage.setItem('pushToken', token)
+          updateBtn()
         })
-        .then(function (subscription) {
-          console.log('GCM EndPoint is:' + subscription.endpoint);
-          var auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
-          console.log('User Auth is:' + auth);
-          var publicKey = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
-          console.log('User PublicKey is:' + publicKey);
+        .catch(err => console.log('Denied', err))
+    }
+
+    function updateSubscriptionOnServer(token) {
+      if (isSubscribed) {
+        return database.ref('device_ids')
+          .equalTo(token)
+          .on('child_added', snapshot => snapshot.ref.remove())
+      }
+
+      database.ref('device_ids').once('value')
+        .then(snapshots => {
+          let deviceExists = false
+          snapshots.forEach(childSnapshot => {
+            if (childSnapshot.val() === token) {
+              deviceExists = true
+              return console.log('Device already registered.');
+            }
+          })
+
+          if (!deviceExists) {
+            console.log('Device subscribed');
+            return database.ref('device_ids').push(token)
+          }
+      })
+    }
+
+    function unsubscribeUser() {
+      messaging.deleteToken(userToken)
+        .then(() => {
+          updateSubscriptionOnServer(userToken)
+          isSubscribed = false
+          userToken = null
+          localStorage.removeItem('pushToken')
+          updateBtn()
         })
-        .catch(console.error.bind(console));
+        .catch(err => console.log('Error unsubscribing', err))
     }
   </script>
 </body>

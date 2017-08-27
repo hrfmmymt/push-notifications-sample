@@ -1,27 +1,18 @@
-console.log('Started', self);
+importScripts('//www.gstatic.com/firebasejs/4.3.0/firebase.js')
+var config = {
+  apiKey: "AIzaSyC7W0Fgf3Sf2XXR3GLxLy1MLVFADG-7ml8",
+  authDomain: "push-notifications-sampl-39a33.firebaseapp.com",
+  databaseURL: "https://push-notifications-sampl-39a33.firebaseio.com",
+  projectId: "push-notifications-sampl-39a33",
+  storageBucket: "push-notifications-sampl-39a33.appspot.com",
+  messagingSenderId: "979896802364"
+};
+firebase.initializeApp(config);
 
-self.addEventListener('install', function(event) {
-  self.skipWaiting();
-  console.log('Installed', event);
-});
-
-self.addEventListener('activate', function(event) {
-  console.log('Activated', event);
-});
-
-self.addEventListener('push', function(event) {
-  console.log('Push message received', event);
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
 
   event.waitUntil(
-    self.registration.showNotification('Push Received', {
-      body: 'Get Notification!',
-      icon: './icon.png',
-      tag: 'push-notification-tag'
-    })
-  );
-});
-
-self.addEventListener('notificationclick', function(event) {
-  console.log('notification clicked:' + event)
-  event.notification.close();
-}, false);
+    self.clients.openWindow('https://www.google.co.jp/')
+  )
+})
