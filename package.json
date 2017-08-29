@@ -1,0 +1,24 @@
+{
+  "name": "push-notifications-sample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "service-worker.js",
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrfmmymt/push-notifications-sample.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hrfmmymt/push-notifications-sample/issues"
+  },
+  "homepage": "https://github.com/hrfmmymt/push-notifications-sample#readme",
+  "devDependencies": {
+    "rollup": "^0.49.1"
+  }
+}

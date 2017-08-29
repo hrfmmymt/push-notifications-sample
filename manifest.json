@@ -1,6 +1,6 @@
 {
-  "name": "NAME",
-  "short_name": "NAME",
+  "name": "Push-Notification-Sample",
+  "short_name": "Push-Sample",
   "start_url": "/",
   "display": "fullscreen",
   "background_color": "#fff",
