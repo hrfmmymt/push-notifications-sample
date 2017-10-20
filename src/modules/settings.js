@@ -1,3 +1,5 @@
+import * as firebase from 'firebase'
+
 // Initialize Firebase
 const config = {
   apiKey: "AIzaSyC7W0Fgf3Sf2XXR3GLxLy1MLVFADG-7ml8",
@@ -9,18 +11,15 @@ const config = {
 };
 firebase.initializeApp(config);
 
-
 const pushBtn   = document.getElementById('push-button')
 const database  = firebase.database()
 const messaging = firebase.messaging()
-
 
 let userToken  = null
 let isSubscribed = false
 
 // UPADTE SUBSCRIPTION BUTTON
 const updateBtn = () => {
-
   if (Notification.permission === 'denied') {
     pushBtn.textContent = 'Subscription blocked'
     return
@@ -29,7 +28,6 @@ const updateBtn = () => {
   pushBtn.textContent = isSubscribed ? 'Unsubscribe' : 'Subscribe'
   pushBtn.disabled = false
 }
-
 
 // UPDATE SUBSCRIPTION ON SERVER
 const updateSubscriptionOnServer = token => {
@@ -58,10 +56,8 @@ const updateSubscriptionOnServer = token => {
   })
 }
 
-
 // SUBSCRIBE
 const subscribeUser = () => {
-
   messaging.requestPermission()
     .then(() => messaging.getToken())
     .then(token => {
@@ -75,10 +71,8 @@ const subscribeUser = () => {
     .catch(err => console.log('Denied', err))
 }
 
-
 // UNSUBSCRIBE
 const unsubscribeUser = () => {
-
   messaging.deleteToken(userToken)
     .then(() => {
       updateSubscriptionOnServer(userToken)
@@ -90,10 +84,8 @@ const unsubscribeUser = () => {
     .catch(err => console.log('Error unsubscribing', err))
 }
 
-
 // INIT PUSH
 const initializePush = () => {
-
   userToken = localStorage.getItem('pushToken')
 
   isSubscribed = userToken !== null
@@ -108,7 +100,6 @@ const initializePush = () => {
     return subscribeUser()
   })
 }
-
 
 // REGISTER SW
 window.addEventListener('load', () => {

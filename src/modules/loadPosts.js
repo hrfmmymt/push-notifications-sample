@@ -1,3 +1,5 @@
+import * as firebase from 'firebase'
+
 export default function() {
   const database = firebase.database()
   const connectedRef = database.ref('.info/connected')
@@ -12,7 +14,6 @@ export default function() {
         const list = document.getElementById('list')
 
         listItem.innerHTML = data
-        console.log(listItem)
         list.appendChild(listItem)
       })
     })
