@@ -1,0 +1,27 @@
+header {
+  padding: 30px;
+  background-color: #eee;
+  margin-bottom: 30px;
+}
+
+main {
+  padding: 0 30px;
+
+}
+
+form {
+  margin: 30px 0;
+}
+
+input {
+  margin-right: 15px;
+}
+
+ul {
+  background: #eee;
+  padding: 20px;
+}
+
+li + li {
+  margin-top: 10px;
+}

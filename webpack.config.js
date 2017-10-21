@@ -1,7 +1,7 @@
 module.exports = {
   entry: [
     'babel-polyfill',
-    './src/main.js'
+    './src/js/main.js'
   ],
   output: {
     path: `${__dirname}/dest`,
@@ -25,6 +25,9 @@ module.exports = {
             }
           }
         ]
+      }, {
+        test: /\.css$/,
+        use: [ 'style-loader', 'css-loader' ]
       }
     ]
   },

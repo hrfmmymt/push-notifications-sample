@@ -1,25 +1,30 @@
 import * as firebase from 'firebase'
+import snackbar from './snackbar'
 
-// Initialize Firebase
-const config = {
-  apiKey: "AIzaSyC7W0Fgf3Sf2XXR3GLxLy1MLVFADG-7ml8",
-  authDomain: "push-notifications-sampl-39a33.firebaseapp.com",
-  databaseURL: "https://push-notifications-sampl-39a33.firebaseio.com",
-  projectId: "push-notifications-sampl-39a33",
-  storageBucket: "push-notifications-sampl-39a33.appspot.com",
-  messagingSenderId: "979896802364"
-};
-firebase.initializeApp(config);
+firebase.initializeApp({
+  apiKey: 'AIzaSyC7W0Fgf3Sf2XXR3GLxLy1MLVFADG-7ml8',
+  authDomain: 'push-notifications-sampl-39a33.firebaseapp.com',
+  databaseURL: 'https://push-notifications-sampl-39a33.firebaseio.com',
+  projectId: 'push-notifications-sampl-39a33',
+  storageBucket: 'push-notifications-sampl-39a33.appspot.com',
+  messagingSenderId: '979896802364'
+})
 
-const pushBtn   = document.getElementById('push-button')
-const database  = firebase.database()
-const messaging = firebase.messaging()
+const pushBtn   = document.getElementById('push-button'),
+      database  = firebase.database(),
+      messaging = firebase.messaging()
 
-let userToken  = null
-let isSubscribed = false
+
+let userToken    = null,
+    isSubscribed = false
+
+
+messaging.onMessage(payload => {
+  snackbar(payload)
+})
 
 // UPADTE SUBSCRIPTION BUTTON
-const updateBtn = () => {
+function updateBtn() {
   if (Notification.permission === 'denied') {
     pushBtn.textContent = 'Subscription blocked'
     return
@@ -29,13 +34,12 @@ const updateBtn = () => {
   pushBtn.disabled = false
 }
 
+
 // UPDATE SUBSCRIPTION ON SERVER
-const updateSubscriptionOnServer = token => {
+function updateSubscriptionOnServer(token) {
 
   if (isSubscribed) {
-    return database.ref('device_ids')
-      .equalTo(token)
-      .on('child_added', snapshot => snapshot.ref.remove())
+    return database.ref('device_ids').equalTo(token).on('child_added', snapshot => snapshot.ref.remove())
   }
 
   database.ref('device_ids').once('value')
@@ -45,23 +49,23 @@ const updateSubscriptionOnServer = token => {
       snapshots.forEach(childSnapshot => {
         if (childSnapshot.val() === token) {
           deviceExists = true
-          return console.log('Device already registered.');
+          return console.log('Device already registered.')
         }
       })
 
       if (!deviceExists) {
-        console.log('Device subscribed');
+        console.log('Device subscribed')
         return database.ref('device_ids').push(token)
       }
-  })
+    })
 }
 
+
 // SUBSCRIBE
-const subscribeUser = () => {
+function subscribeUser() {
   messaging.requestPermission()
     .then(() => messaging.getToken())
     .then(token => {
-
       updateSubscriptionOnServer(token)
       isSubscribed = true
       userToken = token
@@ -71,11 +75,12 @@ const subscribeUser = () => {
     .catch(err => console.log('Denied', err))
 }
 
+
 // UNSUBSCRIBE
-const unsubscribeUser = () => {
+function unsubscribeUser() {
   messaging.deleteToken(userToken)
     .then(() => {
-      updateSubscriptionOnServer(userToken)
+      updateSubscriptionOnServer(userToken) // token === true
       isSubscribed = false
       userToken = null
       localStorage.removeItem('pushToken')
@@ -84,8 +89,9 @@ const unsubscribeUser = () => {
     .catch(err => console.log('Error unsubscribing', err))
 }
 
+
 // INIT PUSH
-const initializePush = () => {
+function initializePush() {
   userToken = localStorage.getItem('pushToken')
 
   isSubscribed = userToken !== null
@@ -94,12 +100,11 @@ const initializePush = () => {
   // CHANGE SUBSCRIPTION ON CLICK
   pushBtn.addEventListener('click', () => {
     pushBtn.disabled = true
-
     if (isSubscribed) return unsubscribeUser()
-
     return subscribeUser()
   })
 }
+
 
 // REGISTER SW
 window.addEventListener('load', () => {
@@ -107,7 +112,6 @@ window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         messaging.useServiceWorker(registration)
-
         initializePush()
       })
       .catch(err => console.log('Service Worker Error', err))
